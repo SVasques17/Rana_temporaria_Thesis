@@ -24,7 +24,8 @@ log "FastQC Version: $(fastqc --version 2>&1)"
 
 #Look for R1 files
 shopt -s nullglob
-r1_files=( *_R1.fastq.gz )
+
+r1_files=( *_R1*.fastq.gz )
 
 if [ ${#r1_files[@]} -eq 0 ]; then
 	log "There are no R1 files."

@@ -22,8 +22,7 @@ os.makedirs(LOGS, exist_ok=True)
 rule all:
 	input:
 		RESULTS + "/multiqc_before/multiqc_before_fastp.html",
-		RESULTS + "/multiqc_before/multiqc_fastp.html",
-		RESULTS + "/multiqc_before/multiqc_after_fastp.html"
+		RESULTS + "/multiqc_after/multiqc_after_fastp.html"
 
 ## FastQC before cleaning with FastP
 rule fastqc_before:
@@ -54,8 +53,8 @@ rule fastqc_before:
 rule multiqc_before:
 	input:
 		expand(
-			RESULTS + "fastqc_before/{sample}_{read}_fastqc.zip",
-			samples=SAMPLES,
+			RESULTS + "/fastqc_before/{sample}_{read}_fastqc.zip",
+			sample=SAMPLES,
 			read=["R1", "R2"]
 		)
 
@@ -68,11 +67,12 @@ rule multiqc_before:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		bash {SCRIPTS}/run_multiqc.sh \
-		{RESULTS}/fastqc_before \
-		{RESULTS}/multiqc_before \
-		multiqc_before_fastp.html \
-		> {log:q} 2>&1
+		conda run --no-capture-output -n qc_pipeline \
+			bash {SCRIPTS}/run_multiqc.sh \
+			{RESULTS}/fastqc_before \
+			{RESULTS}/multiqc_before \
+			multiqc_before_fastp.html \
+			> {log:q} 2>&1
 		"""
 
 ## FastP Cleanup
@@ -95,12 +95,13 @@ rule fastp:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		bash {SCRIPTS}/run_fastp.sh \
-		{input.R1:q} {input.R2:q} \
-		{output.R1:q} {output.R2:q} \
-		{output.HTML:q} {output.JSON:q} \
-		{threads} \
-		> {log:q} 2>&1
+		conda run --no-capture-output -n qc_pipeline \
+			bash {SCRIPTS}/run_fastp.sh \
+			{input.R1:q} {input.R2:q} \
+			{output.R1:q} {output.R2:q} \
+			{output.HTML:q} {output.JSON:q} \
+			{threads} \
+			> {log:q} 2>&1
 		"""
 
 ## FastQC after cleaning with FastP
@@ -121,18 +122,19 @@ rule fastqc_after:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		bash {SCRIPTS}/run_fastqc.sh \
-		{input.R1:q} {input.R2:q} \
-		{RESULTS}/fastqc_after {threads} \
-		> {log:q} 2>&1
+		conda run --no-capture-output -n qc_pipeline \
+			bash {SCRIPTS}/run_fastqc.sh \
+			{input.R1:q} {input.R2:q} \
+			{RESULTS}/fastqc_after {threads} \
+			> {log:q} 2>&1
 		"""
 
 ## MultiQC before FastP
 rule multiqc_after:
 	input:
 		expand(
-			RESULTS + "fastqc_after/{sample}_{read}_clean_fastqc.zip",
-			samples=SAMPLES,
+			RESULTS + "/fastqc_after/{sample}_{read}_clean_fastqc.zip",
+			sample=SAMPLES,
 			read=["R1", "R2"]
 		)
 
@@ -145,9 +147,10 @@ rule multiqc_after:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		bash {SCRIPTS}/run_multiqc.sh \
-		{RESULTS}/fastqc_after \
-		{RESULTS}/multiqc_after \
-		multiqc_after_fastp.html \
-		> {log:q} 2>&1
+		conda run --no-capture-output -n qc_pipeline \
+			bash {SCRIPTS}/run_multiqc.sh \
+			{RESULTS}/fastqc_after \
+			{RESULTS}/multiqc_after \
+			multiqc_after_fastp.html \
+			> {log:q} 2>&1
 		"""

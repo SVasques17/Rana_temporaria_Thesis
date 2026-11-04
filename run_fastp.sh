@@ -20,6 +20,7 @@ fastp \
 	-o "$OUT_R1" \
 	-O "$OUT_R2" \
 	--detect_adapter_for_pe \
+	--cut_mean_quality 20 \
 	--qualified_quality_phred 20 \
 	--unqualified_percent_limit 20 \
 	--n_base_limit 5 \

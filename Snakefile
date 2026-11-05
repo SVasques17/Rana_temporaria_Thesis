@@ -1,13 +1,20 @@
 import os
 from snakemake.io import glob_wildcards
 
-# Defining the names of the folders
-RAW = "raw_data"
-RESULTS = "results"
-LOGS = "logs"
-SCRIPTS = "scripts"
+# Configuration file
+configfile: "config.yaml"
 
-THREADS = 4
+# Defining the names of the folders
+RAW = config["raw_dir"]
+RESULTS = config["results_dir"]
+LOGS = config["logs_dir"]
+SCRIPTS = config["scripts_dir"]
+
+THREADS = config["threads"]
+
+# COnda environments to be used during this file
+QC_ENV = config["environments"]["qc"]
+QIIME2_ENV = config["environments"]["qiime2"]
 
 # Gathering the R1 samples automatically
 SAMPLES = glob_wildcards(RAW + "/{sample}_R1.fastq.gz").sample
@@ -16,6 +23,31 @@ SAMPLES = glob_wildcards(RAW + "/{sample}_R1.fastq.gz").sample
 ## The raws and scripts respective folders must be already present at the same level as this file
 os.makedirs(RESULTS, exist_ok=True)
 os.makedirs(LOGS, exist_ok=True)
+
+# Building fastp options from config.yaml
+FASTP = config["fastp"]
+FASTP_OPTIONS = []
+
+if FASTP.get("detect_adapter_for_pe", False):
+	FASTP_OPTIONS.append("--detect_adapter_for_pe")
+
+if FASTP.get("cut_tail", False):
+	FASTP_OPTIONS.append("--cut_tail")
+
+for parameter in [
+	"cut_window_size",
+	"cut_mean_quality",
+	"qualified_quality_phred",
+	"unqualified_percent_limit",
+	"n_base_limit",
+	"length_limit"
+]:
+	if parameter in FASTP:
+		FASTP_OPTIONS.extend([
+			"--" + parameter,
+			str(FASTP[parameter])
+		])
+
 
 # Defining the final results files in the folders in the RESULTS directory
 ## MultiQC
@@ -42,7 +74,7 @@ rule fastqc_before:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		conda run --no-capture-output -n qc_pipeline \
+		conda run --no-capture-output -n {QC_ENV:q} \
 			bash {SCRIPTS}/run_fastqc.sh \
 			{input.R1:q} {input.R2:q} \
 			{RESULTS}/fastqc_before {threads} \
@@ -67,7 +99,7 @@ rule multiqc_before:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		conda run --no-capture-output -n qc_pipeline \
+		conda run --no-capture-output -n {QC_ENV:q} \
 			bash {SCRIPTS}/run_multiqc.sh \
 			{RESULTS}/fastqc_before \
 			{RESULTS}/multiqc_before \
@@ -95,7 +127,7 @@ rule fastp:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		conda run --no-capture-output -n qc_pipeline \
+		conda run --no-capture-output -n {QC_ENV:q} \
 			bash {SCRIPTS}/run_fastp.sh \
 			{input.R1:q} {input.R2:q} \
 			{output.R1:q} {output.R2:q} \
@@ -122,14 +154,14 @@ rule fastqc_after:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		conda run --no-capture-output -n qc_pipeline \
+		conda run --no-capture-output -n {QC_ENV:q} \
 			bash {SCRIPTS}/run_fastqc.sh \
 			{input.R1:q} {input.R2:q} \
 			{RESULTS}/fastqc_after {threads} \
 			> {log:q} 2>&1
 		"""
 
-## MultiQC before FastP
+## MultiQC after FastP
 rule multiqc_after:
 	input:
 		expand(
@@ -147,7 +179,7 @@ rule multiqc_after:
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
-		conda run --no-capture-output -n qc_pipeline \
+		conda run --no-capture-output -n {QC_ENV:q} \
 			bash {SCRIPTS}/run_multiqc.sh \
 			{RESULTS}/fastqc_after \
 			{RESULTS}/multiqc_after \

@@ -1,0 +1,24 @@
+# Directories needed
+raw_dir: "raw_data"
+results_dir: "results"
+logs_dir: "logs"
+scripts_dir: "scripts"
+
+# Computational resources
+threads: 4
+
+# FastP parameters
+fastp:
+  detect_adapter_for_pe: true
+  cut_tail: false
+  cut_window_size: 4
+  cut_mean_quality: 20
+  qualified_quality_phred: 20
+  unqualified_percent_limit: 20
+  n_base_limit: 5
+  length_requited: 100
+
+# Conda environments
+environments:
+  qc: "qc_pipeline"
+  qiime2: "rachis-qiime2-2026.7"

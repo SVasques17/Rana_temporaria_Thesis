@@ -35,12 +35,11 @@ if FASTP.get("cut_tail", False):
 	FASTP_OPTIONS.append("--cut_tail")
 
 for parameter in [
-	"cut_window_size",
 	"cut_mean_quality",
 	"qualified_quality_phred",
 	"unqualified_percent_limit",
 	"n_base_limit",
-	"length_limit"
+	"length_required"
 ]:
 	if parameter in FASTP:
 		FASTP_OPTIONS.extend([
@@ -124,6 +123,9 @@ rule fastp:
 
 	threads: THREADS
 
+	params:
+		fastp_options = FASTP_OPTIONS
+
 	shell:
 		"""
 		mkdir -p "$(dirname {log:q})"
@@ -133,6 +135,7 @@ rule fastp:
 			{output.R1:q} {output.R2:q} \
 			{output.HTML:q} {output.JSON:q} \
 			{threads} \
+			{params.fastp_options:q} \
 			> {log:q} 2>&1
 		"""
 

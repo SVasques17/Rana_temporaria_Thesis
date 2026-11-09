@@ -11,7 +11,6 @@ threads: 4
 fastp:
   detect_adapter_for_pe: true
   cut_tail: false
-  cut_window_size: 4
   cut_mean_quality: 20
   qualified_quality_phred: 20
   unqualified_percent_limit: 20

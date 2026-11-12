@@ -12,7 +12,7 @@ SCRIPTS = config["scripts_dir"]
 
 THREADS = config["threads"]
 
-# COnda environments to be used during this file
+# Conda environments to be used during this file
 QC_ENV = config["environments"]["qc"]
 QIIME2_ENV = config["environments"]["qiime2"]
 
@@ -53,7 +53,10 @@ for parameter in [
 rule all:
 	input:
 		RESULTS + "/multiqc_before/multiqc_before_fastp.html",
-		RESULTS + "/multiqc_after/multiqc_after_fastp.html"
+		RESULTS + "/multiqc_after/multiqc_after_fastp.html",
+		RESULTS + "/files_for_qiime2/manifest.tsv",
+		RESULTS + "/files_for_qiime2/demux-paired.qza",
+		RESULTS + "/files_for_qiime2/demux-summary.qzv"
 
 ## FastQC before cleaning with FastP
 rule fastqc_before:
@@ -187,5 +190,56 @@ rule multiqc_after:
 			{RESULTS}/fastqc_after \
 			{RESULTS}/multiqc_after \
 			multiqc_after_fastp.html \
+			> {log:q} 2>&1
+		"""
+
+## Creating the manifest file for QIIME2
+rule create_manifest:
+	input:
+		script = SCRIPTS + "/create_manifest.py",
+		R1 = expand(
+			RESULTS + "/fastp/{sample}_R1_clean.fastq.gz",
+			sample=SAMPLES
+		),
+		R2 = expand(
+			RESULTS + "/fastp/{sample}_R2_clean.fastq.gz",
+			sample=SAMPLES
+		)
+
+	output:
+		RESULTS + "/files_for_qiime2/manifest.tsv"
+
+	log:
+		LOGS + "/create_manifest.log"
+
+	shell:
+		"""
+		mkdir -p "$(dirname {output:q})"
+		mkdir -p "$(dirname {log:q})"
+		conda run --no-capture-output -n {QC_ENV:q} \
+			python {input.script:q} \
+			> {log:q} 2>&1
+		"""
+
+# Importing the FASTQ files into QIIME2 and summarize their quality
+rule run_qiime_import:
+	input:
+		manifest = RESULTS + "/files_for_qiime2/manifest.tsv"
+
+	output:
+		demux = RESULTS + "/files_for_qiime2/demux-paired.qza",
+		summary = RESULTS + "/files_for_qiime2/demux-summary.qzv"
+
+	log:
+		LOGS + "/qiime2_import.log"
+
+	shell:
+		"""
+		mkdir -p "$(dirname {log:q})"
+		conda run --no-capture-output -n {QIIME2_ENV:q} \
+			bash {SCRIPTS:q}/run_qiime_import.sh \
+			{input.manifest:q} \
+			{output.demux:q} \
+			{output.summary:q} \
 			> {log:q} 2>&1
 		"""

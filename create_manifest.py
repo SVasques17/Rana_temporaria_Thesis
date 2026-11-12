@@ -15,10 +15,10 @@ forward_files = sorted(INPUT_DIR.glob("*_R1_clean.fastq.gz"))
 OUTPUT_DIR.parent.mkdir(parents=True, exist_ok=True)
 
 # Writing the whole table
-with open(OUTPUT_DIR, "w", newline="\n") as manifest:
-    writer = csv.writer(manifest, delimiter="\t")
+with open(OUTPUT_DIR, "w", newline="") as manifest:
+    writer = csv.writer(manifest, delimiter="\t", lineterminator="\n")
     # Columns headers
-    writer.writerow(["sample-id", "absolute-filepath", "direction"])
+    writer.writerow(["sample-id", "forward-absolute-filepath", "reverse-absolute-filepath"])
 
     for ff in forward_files:
         # Sample name
@@ -30,7 +30,6 @@ with open(OUTPUT_DIR, "w", newline="\n") as manifest:
         if not rf.exists():
             raise FileNotFoundError(f"Reverse read not found for sample {sample}: {rf}")
 
-        writer.writerow([sample, ff.resolve(), "forward"])
-        writer.writerow([sample, ff.resolve(), "reverse"])
+        writer.writerow([sample, ff.resolve(), rf.resolve()])
 
 print(f"Manifest created: {OUTPUT_DIR}")

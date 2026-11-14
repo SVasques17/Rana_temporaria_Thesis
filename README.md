@@ -69,6 +69,12 @@ In this script, the files created by the last script are aggregated into a singl
 #### run_fastp.sh
 In this last part of quality control, all the errors and other artifacts present in the *.fastq.gz* files can be corrected.
 
+#### create_manifest.sh
+This script run through all the cleaned FASTQ files, identifies all the forward and reverse pair files of each sample and writes the path to those files in a file named *manifest.tsv*.
+
+#### run_qiime_import.sh
+This script imports all the cleaned FASTQ files to the QIIME2 format, creating the *demux-paired.qza* artifact. After that, it generates the *demux-sumamry.qzv* file with the summary of the quality of the samples.
+
 ## How to Run
 To verify the integrity of every file and if everything will run smoothly, first the user should run the following command:
 ```text

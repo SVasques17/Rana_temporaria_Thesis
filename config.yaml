@@ -21,3 +21,13 @@ fastp:
 environments:
   qc: "qc_pipeline"
   qiime2: "rachis-qiime2-2026.7"
+
+# DADA2 parameters
+dada2:
+  trim_left_f: 17
+  trim_left_r: 21
+  trunc_len_f: 270
+  trunc_len_r: 260
+  max_ee_f: 2
+  max_ee_r: 2
+  trunc_q: 2

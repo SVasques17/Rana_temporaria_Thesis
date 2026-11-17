@@ -47,6 +47,9 @@ for parameter in [
 			str(FASTP[parameter])
 		])
 
+# DADA2 configuration
+DADA2 = config["dada2"]
+
 
 # Defining the final results files in the folders in the RESULTS directory
 ## MultiQC
@@ -56,7 +59,11 @@ rule all:
 		RESULTS + "/multiqc_after/multiqc_after_fastp.html",
 		RESULTS + "/files_for_qiime2/manifest.tsv",
 		RESULTS + "/files_for_qiime2/demux-paired.qza",
-		RESULTS + "/files_for_qiime2/demux-summary.qzv"
+		RESULTS + "/files_for_qiime2/demux-summary.qzv",
+		RESULTS + "/dada2/table.qza",
+		RESULTS + "/dada2/representative_sequences.qza",
+		RESULTS + "/dada2/denoising_stats.qza",
+		RESULTS + "/dada2/base_transition_stats.qza"
 
 ## FastQC before cleaning with FastP
 rule fastqc_before:
@@ -241,5 +248,50 @@ rule run_qiime_import:
 			{input.manifest:q} \
 			{output.demux:q} \
 			{output.summary:q} \
+			> {log:q} 2>&1
+		"""
+
+
+# DADA2 denoising with the files imported into QIIME2
+rule dada2:
+	input:
+		DEMUX = RESULTS + "/files_for_qiime2/demux-paired.qza"
+
+	output:
+		TABLE = RESULTS + "/dada2/table.qza",
+		REP_SEQS = RESULTS + "/dada2/representative_sequences.qza",
+		STATS = RESULTS + "/dada2/denoising_stats.qza",
+		BASE_STATS = RESULTS + "/dada2/base_transition_stats.qza"
+
+	log:
+		LOGS + "/dada2/denoising.log"
+
+	params:
+		trim_left_f = DADA2["trim_left_f"],
+		trim_left_r = DADA2["trim_left_r"],
+		trunc_len_f = DADA2["trunc_len_f"],
+		trunc_len_r = DADA2["trunc_len_r"],
+		max_ee_f = DADA2["max_ee_f"],
+		max_ee_r = DADA2["max_ee_r"],
+		trunc_q = DADA2["trunc_q"]
+
+	shell:
+		"""
+		mkdir -p "$(dirname {log:q})"
+		conda run --no-capture-output -n {QIIME2_ENV:q} \
+			bash {SCRIPTS}/run_dada2.sh \
+			{input.DEMUX:q} \
+			{output.TABLE:q} \
+			{output.REP_SEQS:q} \
+			{output.STATS:q} \
+			{output.BASE_STATS:q} \
+			{threads} \
+			{params.trim_left_f} \
+			{params.trim_left_r} \
+			{params.trunc_len_f} \
+			{params.trunc_len_r} \
+			{params.max_ee_f} \
+			{params.max_ee_r} \
+			{params.trunc_q} \
 			> {log:q} 2>&1
 		"""

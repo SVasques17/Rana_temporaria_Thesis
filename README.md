@@ -75,6 +75,12 @@ This script run through all the cleaned FASTQ files, identifies all the forward 
 #### run_qiime_import.sh
 This script imports all the cleaned FASTQ files to the QIIME2 format, creating the *demux-paired.qza* artifact. After that, it generates the *demux-summary.qzv* file with the summary of the quality of the samples.
 
+#### run_dada2.sh
+With this script, after importing all the cleaned FASTQ files to the QIIME2 format, the dada2 plugin from QIIME2 generates four files: *table.qza* (the feature table with the abundance of the ASVs by sample); *representative_sequences.qza* (the representative sequences of the ASVs); *denoising_stats.qza* (statistics of read retention); and *base_transition_stats.qza* (statistics on transitions between bases and quality).
+
+#### run_feature_table_vizualization.sh
+<TBC>
+
 ## How to Run
 To verify the integrity of every file and if everything will run smoothly, first the user should run the following command:
 ```text

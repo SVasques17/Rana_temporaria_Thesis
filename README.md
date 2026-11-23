@@ -79,7 +79,7 @@ This script imports all the cleaned FASTQ files to the QIIME2 format, creating t
 With this script, after importing all the cleaned FASTQ files to the QIIME2 format, the dada2 plugin from QIIME2 generates four files: *table.qza* (the feature table with the abundance of the ASVs by sample); *representative_sequences.qza* (the representative sequences of the ASVs); *denoising_stats.qza* (statistics of read retention); and *base_transition_stats.qza* (statistics on transitions between bases and quality).
 
 #### run_feature_table_vizualization.sh
-<TBC>
+This script generates three new files: *table_vizualization.qzv* (vizualization of a summary of the feature table); *feature_frequencies.qza* (frequency data from each ASV); and *sample_frequencies.qza* (frequency data from each sample).
 
 ## How to Run
 To verify the integrity of every file and if everything will run smoothly, first the user should run the following command:

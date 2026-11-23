@@ -63,7 +63,10 @@ rule all:
 		RESULTS + "/dada2/table.qza",
 		RESULTS + "/dada2/representative_sequences.qza",
 		RESULTS + "/dada2/denoising_stats.qza",
-		RESULTS + "/dada2/base_transition_stats.qza"
+		RESULTS + "/dada2/base_transition_stats.qza",
+		RESULTS + "/dada2/table_vizualization.qzv",
+		RESULTS + "/dada2/feature_frequencies.qza",
+		RESULTS + "/dada2/sample_frequencies.qza"
 
 ## FastQC before cleaning with FastP
 rule fastqc_before:
@@ -251,8 +254,7 @@ rule run_qiime_import:
 			> {log:q} 2>&1
 		"""
 
-
-# DADA2 denoising with the files imported into QIIME2
+# DADA2 denoising with the files imported into QIIME2 + creation of feature table
 rule dada2:
 	input:
 		DEMUX = RESULTS + "/files_for_qiime2/demux-paired.qza"
@@ -293,5 +295,30 @@ rule dada2:
 			{params.max_ee_f} \
 			{params.max_ee_r} \
 			{params.trunc_q} \
+			> {log:q} 2>&1
+		"""
+
+# Feature table vizualization
+rule feature_table_vizualization:
+	input:
+		TABLE = RESULTS + "/dada2/table.qza"
+
+	output:
+		SUMMARY = RESULTS + "/dada2/table_vizualization.qzv",
+		FEATURE_FREQ = RESULTS + "/dada2/feature_frequencies.qza",
+		SAMPLE_FREQ = RESULTS + "/dada2/sample_frequencies.qza"
+
+	log:
+		LOGS + "/dada2/feature_table_vizualization.log"
+
+	shell:
+		"""
+		mkdir -p "$(dirname {log:q})"
+		conda run --no-capture-output -n {QIIME2_ENV:q} \
+			bash {SCRIPTS}/run_feature_table_vizualization.sh \
+			{input.TABLE:q}	\
+			{output.FEATURE_FREQ:q} \
+			{output.SAMPLE_FREQ:q} \
+			{output.SUMMARY:q} \
 			> {log:q} 2>&1
 		"""

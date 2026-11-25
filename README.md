@@ -53,6 +53,7 @@ The main folder structure is:
 ```text
 PopulationName/
 ├── raw_data/
+├── resources/
 ├── results/
 ├── scripts/
 └── logs/
@@ -80,6 +81,12 @@ With this script, after importing all the cleaned FASTQ files to the QIIME2 form
 
 #### run_feature_table_vizualization.sh
 This script generates three new files: *table_vizualization.qzv* (vizualization of a summary of the feature table); *feature_frequencies.qza* (frequency data from each ASV); and *sample_frequencies.qza* (frequency data from each sample).
+
+#### download_silva_classifier.sh
+With this script, the right classifier can be downloaded from the SILVA database website. If the user wants another classifier, it can be changed in the *config.yaml*.
+
+#### run_taxonomic_classification.sh
+This script generates the *taxonomy.qza* file that shows all of the biological taxa assigned to the ASV features of all the samples.
 
 ## How to Run
 To verify the integrity of every file and if everything will run smoothly, first the user should run the following command:

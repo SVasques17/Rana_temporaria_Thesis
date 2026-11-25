@@ -31,3 +31,9 @@ dada2:
   max_ee_f: 2
   max_ee_r: 2
   trunc_q: 2
+
+# Taxonomy Classification Classifier
+taxonomy:
+  classifier_url: "https://www.arb-silva.de/fileadmin/silva_databases/current/QIIME2/2026.7/SSU/V3V4-341f-806r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V3V4-341f-806r.qza"
+  classifier_file: "resources/classifiers/SILVA_144_SSURef_NR99_uniform_classifier_V3V4-341f-806r.qza"
+  confidence: 0.7

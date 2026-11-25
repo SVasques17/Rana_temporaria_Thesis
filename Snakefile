@@ -66,7 +66,8 @@ rule all:
 		RESULTS + "/dada2/base_transition_stats.qza",
 		RESULTS + "/dada2/table_vizualization.qzv",
 		RESULTS + "/dada2/feature_frequencies.qza",
-		RESULTS + "/dada2/sample_frequencies.qza"
+		RESULTS + "/dada2/sample_frequencies.qza",
+		RESULTS + "/taxonomy/taxonomy.qza"
 
 ## FastQC before cleaning with FastP
 rule fastqc_before:
@@ -320,5 +321,57 @@ rule feature_table_vizualization:
 			{output.FEATURE_FREQ:q} \
 			{output.SAMPLE_FREQ:q} \
 			{output.SUMMARY:q} \
+			> {log:q} 2>&1
+		"""
+
+# Downloading the SILVA classifier
+rule download_classifier:
+	output:
+		CLASSIFIER = config["taxonomy"]["classifier_file"]
+
+	params:
+		url = config["taxonomy"]["classifier_url"]
+
+	log:
+		LOGS + "/taxonomy/download_classifier.log"
+
+	shell:
+		"""
+		mkdir -p "$(dirname {output.CLASSIFIER:q})"
+		mkdir -p "$(dirname {log:q})"
+		bash {SCRIPTS}/download_silva_classifier.sh \
+			{params.url:q} \
+			{output.CLASSIFIER:q} \
+			> {log:q} 2>&1
+		"""
+
+# Taxonomy Classification
+rule taxonomy_classification:
+	input:
+		REP_SEQS =  RESULTS + "/dada2/representative_sequences.qza",
+		CLASSIFIER = config["taxonomy"]["classifier_file"]
+
+	output:
+		TAXONOMY = RESULTS + "/taxonomy/taxonomy.qza"
+
+	params:
+		confidence = config["taxonomy"]["confidence"]
+
+	threads: THREADS
+
+	log:
+		LOGS + "/taxonomy/classification.log"
+
+	shell:
+		"""
+		mkdir -p "$(dirname {output.TAXONOMY:q})"
+		mkdir -p "$(dirname {log:q})"
+		conda run --no-capture-output -n {QIIME2_ENV:q} \
+			bash {SCRIPTS}/run_taxonomic_classification.sh \
+			{input.REP_SEQS:q} \
+			{input.CLASSIFIER:q} \
+			{output.TAXONOMY:q} \
+			{params.confidence:q} \
+			{threads} \
 			> {log:q} 2>&1
 		"""
